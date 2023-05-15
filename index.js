@@ -19,42 +19,27 @@ app.get("/", function (req, res) {
 });
 
 // your first API endpoint...
+const isInvalidDate = (date) => date.toUTCString() === "Invalid Date";
+app.get("/api/:date", (req, res) => {
+  let date = new Date(req.params.date);
 
-app.get("/api/:date?", (req, res) => {
-  const { date } = req.params;
-
-  if (date && /^[0-9]{1,13}$/.test(date)) {
-    // Date: Unix format
-    const unixTime = parseInt(date);
-    const utcTime = new Date(unixTime).toUTCString();
-
-    return res.status(200).json({
-      unix: unixTime,
-      UTC: utcTime,
-    });
-  } else if (date) {
-    // Date: String format
-    const isValidDate = !isNaN(Date.parse(date));
-
-    if (isValidDate) {
-      const now = new Date(date);
-      const unixTime = now.getTime();
-      const utcTime = now.toUTCString();
-
-      return res.status(200).json({
-        unix: unixTime,
-        UTC: utcTime,
-      });
-    } else {
-      return res.status(400).json({
-        message: "Invalid date format",
-      });
-    }
-  } else {
-    return res.status(400).json({
-      message: "You must specify a valid date",
-    });
+  if (isInvalidDate(date)) {
+    date = new Date(+req.params.date);
   }
+  if (isInvalidDate(date)) {
+    res.json({ error: "Invalid Date" });
+    return;
+  }
+  res.json({
+    unix: date.getTime(),
+    utc: date.toUTCString(),
+  });
+});
+app.get("/api", (req, res) => {
+  res.json({
+    unix: new Date().getTime(),
+    utc: new Date().toUTCString(),
+  });
 });
 
 // listen for requests :)
