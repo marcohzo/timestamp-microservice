@@ -19,7 +19,7 @@ app.get("/", function (req, res) {
 });
 
 // your first API endpoint...
-app.get("/api/:date?", (req, res) => {
+/* app.get("/api/:date?", (req, res) => {
   const { date } = req.params;
 
   const isValidDate = !isNaN(Date.parse(date));
@@ -37,8 +37,43 @@ app.get("/api/:date?", (req, res) => {
       message: "Invalid date format",
     });
   }
-});
+}); */
+app.get("/api/:date?", (req, res) => {
+  const { date } = req.params;
 
+  if (date && /^[0-9]{1,13}$/.test(date)) {
+    // Date: Unix format
+    const unixTime = parseInt(date);
+    const utcTime = new Date(unixTime).toUTCString();
+
+    return res.status(200).json({
+      unix: unixTime,
+      UTC: utcTime,
+    });
+  } else if (date) {
+    // Date: String format
+    const isValidDate = !isNaN(Date.parse(date));
+
+    if (isValidDate) {
+      const now = new Date(date);
+      const unixTime = now.getTime();
+      const utcTime = now.toUTCString();
+
+      return res.status(200).json({
+        unix: unixTime,
+        UTC: utcTime,
+      });
+    } else {
+      return res.status(400).json({
+        message: "Invalid date format",
+      });
+    }
+  } else {
+    return res.status(400).json({
+      message: "You must specify a valid date",
+    });
+  }
+});
 
 // listen for requests :)
 var listener = app.listen(3000, function () {
